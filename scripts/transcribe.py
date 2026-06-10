@@ -61,6 +61,32 @@ def truncate_transcript(text: str, video_title: str = "") -> str:
     return truncated + aviso
 
 
+def parse_json3_transcript(text: str) -> str:
+    """Extrai texto puro de legendas no formato json3 do YouTube."""
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return text
+
+    lines = []
+    for event in data.get('events', []):
+        if 'segs' not in event:
+            continue
+        segment_text = ''.join(seg.get('utf8', '') for seg in event['segs'])
+        segment_text = segment_text.strip()
+        if segment_text and segment_text != '\n':
+            lines.append(segment_text)
+
+    return ' '.join(lines)
+
+
+def load_transcript(text: str, ext: str = "") -> str:
+    """Carrega transcrição detectando o formato automaticamente."""
+    if ext == 'json3' or text.strip().startswith('{"wireMagic"'):
+        return parse_json3_transcript(text)
+    return text
+
+
 def clean_transcript(text: str) -> str:
     """Limpeza completa: remove timestamps, tags VTT, repetições sobrepostas."""
     text = re.sub(r'WEBVTT[^\n]*', '', text)
@@ -250,7 +276,7 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
 
 
 def download_subtitle_file(url: str, temp_dir: str, video_id: str, ext: str) -> str:
-    """Baixa arquivo de legenda e retorna o texto."""
+    """Baixa arquivo de legenda e retorna o texto processado."""
     import urllib.request
 
     output_path = os.path.join(temp_dir, f'{video_id}.{ext}')
@@ -258,7 +284,8 @@ def download_subtitle_file(url: str, temp_dir: str, video_id: str, ext: str) -> 
     try:
         urllib.request.urlretrieve(url, output_path)
         with open(output_path, 'r', encoding='utf-8', errors='replace') as f:
-            return f.read()
+            raw_text = f.read()
+        return load_transcript(raw_text, ext)
     except Exception as e:
         print(f"Erro ao baixar legenda: {e}", file=sys.stderr)
         return None
