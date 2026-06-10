@@ -13,6 +13,24 @@ import subprocess
 import sys
 import os
 
+# --- LIMITACAO DE USO DE CPU (limita a 70% dos nucleos fisicos disponiveis) ---
+import multiprocessing as mp
+try:
+    _cpu_count = mp.cpu_count()
+    _target_threads = max(1, int(_cpu_count * 0.7))
+except Exception:
+    _target_threads = 2
+
+os.environ["OMP_NUM_THREADS"] = str(_target_threads)
+os.environ["OPENBLAS_NUM_THREADS"] = str(_target_threads)
+os.environ["MKL_NUM_THREADS"] = str(_target_threads)
+os.environ["VECLIB_MAXIMUM_THREADS"] = str(_target_threads)
+os.environ["NUMEXPR_NUM_THREADS"] = str(_target_threads)
+
+import torch
+torch.set_num_threads(_target_threads)
+torch.set_num_interop_threads(_target_threads)
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
