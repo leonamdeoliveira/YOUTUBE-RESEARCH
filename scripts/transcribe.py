@@ -1,0 +1,268 @@
+#!/usr/bin/env python3
+"""
+transcribe.py - Baixa e limpa transcrições dos vídeos selecionados.
+Sem uso de LLM - zero tokens consumidos nesta etapa.
+"""
+
+import argparse
+import io
+import json
+import os
+import re
+import sys
+import tempfile
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+
+def clean_transcript(text: str) -> str:
+    """Limpeza completa: remove timestamps, tags VTT, repetições sobrepostas."""
+    text = re.sub(r'WEBVTT[^\n]*', '', text)
+    text = re.sub(r'Kind:\s*\w+', '', text)
+    text = re.sub(r'Language:\s*\w+', '', text)
+
+    text = re.sub(r'<\d{2}:\d{2}:\d{2}\.\d{3}>', '', text)
+    text = re.sub(r'<\d{2}:\d{2}:\d{2}>', '', text)
+    text = re.sub(r'</?c>', '', text)
+    text = re.sub(r'</?v[^>]*>', '', text)
+    text = re.sub(r'<[^>]+>', '', text)
+
+    text = text.replace('&gt;', '>')
+    text = text.replace('&lt;', '<')
+    text = text.replace('&amp;', '&')
+    text = text.replace('&nbsp;', ' ')
+
+    text = re.sub(r'^\d+$', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->.*$', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^\d{2}:\d{2}\s*-->.*$', '', text, flags=re.MULTILINE)
+
+    lines = text.split('\n')
+    blocks = []
+    current_block = []
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            if current_block:
+                blocks.append(' '.join(current_block))
+                current_block = []
+            continue
+        if re.match(r'^NOTE\b', line):
+            continue
+        current_block.append(line)
+
+    if current_block:
+        blocks.append(' '.join(current_block))
+
+    cleaned_blocks = []
+    for i, block in enumerate(blocks):
+        if i == 0:
+            cleaned_blocks.append(block)
+        else:
+            prev_block = cleaned_blocks[-1]
+            words_prev = prev_block.split()
+            words_curr = block.split()
+
+            overlap = 0
+            max_check = min(len(words_prev), len(words_curr), 20)
+
+            for check_len in range(max_check, 0, -1):
+                if words_prev[-check_len:] == words_curr[:check_len]:
+                    overlap = check_len
+                    break
+
+            if overlap > 0:
+                new_text = ' '.join(words_curr[overlap:])
+                if new_text:
+                    cleaned_blocks.append(new_text)
+            else:
+                cleaned_blocks.append(block)
+
+    result = ' '.join(cleaned_blocks)
+    result = re.sub(r'\s+', ' ', result)
+    return result.strip()
+
+
+def download_transcript(video_url: str, output_dir: str, video_id: str = None) -> dict:
+    """Baixa transcrição de um vídeo via yt-dlp."""
+    import yt_dlp
+
+    if not video_id:
+        video_id = video_url.split('v=')[-1].split('&')[0]
+
+    temp_dir = tempfile.mkdtemp(prefix='yt_transcript_')
+
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'skip_download': True,
+        'writesubtitles': True,
+        'writeautomaticsub': True,
+        'subtitleslangs': ['pt', 'pt-BR', 'en', 'es', '-live_chat'],
+        'subtitlesformat': 'vtt',
+        'outtmpl': os.path.join(temp_dir, '%(id)s.%(ext)s'),
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+
+            subtitles = info.get('subtitles', {})
+            auto_captions = info.get('automatic_captions', {})
+
+            transcript_text = None
+            transcript_lang = None
+            transcript_type = None
+
+            for lang in ['pt', 'pt-BR', 'en', 'es']:
+                if lang in subtitles:
+                    subs = subtitles[lang]
+                    for fmt in ['vtt', 'srt', 'json3']:
+                        for sub in subs:
+                            if sub.get('ext') == fmt:
+                                transcript_text = download_subtitle_file(sub.get('url'), temp_dir, video_id, fmt)
+                                transcript_lang = lang
+                                transcript_type = 'manual'
+                                break
+                        if transcript_text:
+                            break
+                if transcript_text:
+                    break
+
+            if not transcript_text:
+                for lang in ['pt', 'pt-BR', 'en', 'es']:
+                    if lang in auto_captions:
+                        subs = auto_captions[lang]
+                        for fmt in ['vtt', 'srt', 'json3']:
+                            for sub in subs:
+                                if sub.get('ext') == fmt:
+                                    transcript_text = download_subtitle_file(sub.get('url'), temp_dir, video_id, fmt)
+                                    transcript_lang = lang
+                                    transcript_type = 'auto'
+                                    break
+                            if transcript_text:
+                                break
+                    if transcript_text:
+                        break
+
+            if not transcript_text:
+                return {
+                    'video_id': video_id,
+                    'url': video_url,
+                    'title': info.get('title'),
+                    'success': False,
+                    'error': 'Nenhuma transcrição disponível',
+                }
+
+            cleaned = clean_transcript(transcript_text)
+
+            output_path = os.path.join(output_dir, f'{video_id}.md')
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(f"# {info.get('title', 'Sem título')}\n\n")
+                f.write(f"**Canal:** {info.get('uploader', 'Desconhecido')}\n")
+                f.write(f"**Duração:** {round((info.get('duration') or 0) / 60, 1)} min\n")
+                f.write(f"**Idioma da transcrição:** {transcript_lang} ({transcript_type})\n\n")
+                f.write(f"---\n\n")
+                f.write(cleaned)
+
+            word_count = len(cleaned.split())
+
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+            return {
+                'video_id': video_id,
+                'url': video_url,
+                'title': info.get('title'),
+                'channel': info.get('uploader'),
+                'language': transcript_lang,
+                'type': transcript_type,
+                'word_count': word_count,
+                'file_path': output_path,
+                'success': True,
+            }
+
+    except Exception as e:
+        return {
+            'video_id': video_id,
+            'url': video_url,
+            'success': False,
+            'error': str(e),
+        }
+
+
+def download_subtitle_file(url: str, temp_dir: str, video_id: str, ext: str) -> str:
+    """Baixa arquivo de legenda e retorna o texto."""
+    import urllib.request
+
+    output_path = os.path.join(temp_dir, f'{video_id}.{ext}')
+
+    try:
+        urllib.request.urlretrieve(url, output_path)
+        with open(output_path, 'r', encoding='utf-8', errors='replace') as f:
+            return f.read()
+    except Exception as e:
+        print(f"Erro ao baixar legenda: {e}", file=sys.stderr)
+        return None
+
+
+def transcribe_videos(videos_json: str, output_dir: str) -> list:
+    """Transcreve lista de vídeos."""
+    videos = json.loads(videos_json) if isinstance(videos_json, str) else videos_json
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    results = []
+    for i, video in enumerate(videos, 1):
+        url = video.get('url')
+        video_id = video.get('video_id')
+        print(f"[{i}/{len(videos)}] Transcrevendo: {video.get('title', url)}", file=sys.stderr)
+
+        result = download_transcript(url, output_dir, video_id)
+        results.append(result)
+
+        if result['success']:
+            print(f"  ✓ {result['word_count']} palavras ({result['type']}, {result['language']})", file=sys.stderr)
+        else:
+            print(f"  ✗ {result.get('error', 'Erro desconhecido')}", file=sys.stderr)
+
+    return results
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Baixa transcrições de vídeos do YouTube')
+    parser.add_argument('input', help='JSON com lista de vídeos ou arquivo JSON')
+    parser.add_argument('--output-dir', '-o', default=None, help='Diretório de saída (default: temp)')
+    parser.add_argument('--output-json', help='Arquivo JSON de saída (default: stdout)')
+
+    args = parser.parse_args()
+
+    if os.path.isfile(args.input):
+        with open(args.input, 'r', encoding='utf-8') as f:
+            videos = json.load(f)
+    else:
+        videos = json.loads(args.input)
+
+    output_dir = args.output_dir or os.path.join(tempfile.gettempdir(), 'yt_transcripts')
+
+    results = transcribe_videos(videos, output_dir)
+
+    output = json.dumps(results, ensure_ascii=False, indent=2)
+
+    if args.output_json:
+        os.makedirs(os.path.dirname(args.output_json) or '.', exist_ok=True)
+        with open(args.output_json, 'w', encoding='utf-8') as f:
+            f.write(output)
+        print(f"Resultados salvos em: {args.output_json}", file=sys.stderr)
+    else:
+        print(output)
+
+    success_count = sum(1 for r in results if r['success'])
+    print(f"\nTranscrições: {success_count}/{len(results)} com sucesso", file=sys.stderr)
+
+    return 0 if success_count > 0 else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())
