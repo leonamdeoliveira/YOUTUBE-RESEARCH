@@ -33,6 +33,7 @@ O diferencial? **Economia extrema de tokens**: 3 das 4 etapas do pipeline rodam 
 - 🎓 **Síntese acadêmica** — Metodologia de 6 partes: resposta direta, contexto, seções temáticas, convergências, nuances e conclusão
 - 🌍 **Multilíngue** — Detecta automaticamente o idioma da query e busca vídeos relevantes
 - ⚡ **Pipeline otimizado** — 3 etapas sem LLM (zero tokens), apenas a síntese final usa IA
+- 🚀 **Setup automático** — Instala dependências na primeira execução, zero overhead nas seguintes (flag `setup_done.json`)
 - 🔄 **Compatível com todos** — Funciona com OpenCode, Claude Code, Cursor, Windsurf e qualquer agente que suporte AgentSkills
 - 🧹 **Limpeza automática** — Remove arquivos temporários após a síntese, mantendo apenas resumos finais
 
@@ -172,6 +173,7 @@ pesquise no youtube sobre machine learning
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  1. BUSCA (search.py) — Zero tokens                         │
+│     • Verifica dependências automaticamente (1a execução)   │
 │     • Detecta idioma da query                               │
 │     • Busca 20 candidatos via yt-dlp                        │
 │     • Filtra: duração 3-60min, tem transcrição              │
@@ -233,7 +235,9 @@ yt-research/
 ├── README.md             # Você está aqui
 ├── INSTALL.md            # Guia detalhado de instalação
 ├── LICENSE               # MIT License
-├── .gitignore
+├── .gitignore            # Ignora output/ e setup_done.json
+├── requirements.txt      # Dependências Python
+├── setup_done.json       # Flag de setup concluído (gitignored)
 ├── scripts/
 │   ├── setup.py          # Instalação automática de dependências
 │   ├── search.py         # Busca e seleção de vídeos
@@ -294,6 +298,8 @@ Ou instale diretamente:
 ```bash
 pip install -r requirements.txt
 ```
+
+Para forçar reinstalação, delete `setup_done.json` e execute novamente.
 </details>
 
 <details>

@@ -176,8 +176,11 @@ Este script:
 ## Dependências
 
 - Python 3.8+
-- yt-dlp (instalado automaticamente pelo setup.py)
-- sentence-transformers (instalado automaticamente pelo setup.py)
+- yt-dlp (instalado automaticamente na primeira execução)
+- sentence-transformers (instalado automaticamente na primeira execução)
+- torch (instalado automaticamente na primeira execução)
+- transformers (instalado automaticamente na primeira execução)
+- numpy (instalado automaticamente na primeira execução)
 - Modelo paraphrase-multilingual-MiniLM-L12-v2 (baixado automaticamente na primeira execução)
 
 ## Estrutura de Arquivos
@@ -186,7 +189,11 @@ Este script:
 yt-research/
 ├── SKILL.md                    # Este arquivo
 ├── README.md                   # Guia do usuário
+├── INSTALL.md                  # Guia detalhado de instalação
+├── LICENSE                     # MIT License
+├── .gitignore                  # Ignora output/ e setup_done.json
 ├── requirements.txt            # Dependências Python
+├── setup_done.json             # Flag de setup concluído (gitignored)
 ├── scripts/
 │   ├── setup.py                # Instalação automática de dependências
 │   ├── search.py               # Busca + seleção (zero tokens)
@@ -195,12 +202,13 @@ yt-research/
 │   └── cleanup.py              # Limpeza de temporários
 ├── references/
 │   └── methodology.md          # Metodologia acadêmica completa
-└── output/                     # Pasta de saída (resumos finais)
+└── output/                     # Pasta de saída (resumos finais, gitignored)
     └── <query-slug>.md         # Resumos finais salvos
 ```
 
 ## Economia de Tokens
 
+- **Setup:** Executado apenas na primeira execução (flag `setup_done.json`). Nas execuções seguintes, zero overhead.
 - **Etapas 1-3:** Zero tokens de LLM (scripts Python puros)
 - **Etapa 4:** Agente lê transcrições e faz síntese diretamente
 - **Limpeza de transcrição:** Remove timestamps e formatação inútil antes de enviar ao agente
