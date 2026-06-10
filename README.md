@@ -169,7 +169,7 @@ pesquise no youtube sobre machine learning
 │  1. BUSCA (search.py) — Zero tokens                         │
 │     • Detecta idioma da query                               │
 │     • Busca 20 candidatos via yt-dlp                        │
-│     • Filtra: duração 3-30min, tem transcrição              │
+│     • Filtra: duração 3-60min, tem transcrição              │
 │     • Exclui shorts e notícias                              │
 │     • Aplica scoring composto                               │
 │     • Retorna top 3 com transcrição confirmada              │
@@ -207,7 +207,7 @@ Cada vídeo recebe um score baseado em 4 critérios:
 | **Relevância semântica** | 35% | Similaridade cosseno entre query e título+descrição (modelo multilíngue) |
 | **Engajamento** | 30% | (Likes + comentários) / views |
 | **Views** | 25% | Escala logarítmica para não favorecer apenas virais |
-| **Duração** | 10% | Ideal: 3-30 minutos |
+| **Duração** | 10% | Ideal: 3-60 minutos |
 
 ### Estrutura da Síntese (6 Partes)
 

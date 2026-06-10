@@ -65,7 +65,7 @@ python "SKILL_DIR/scripts/search.py" "energia solar" --top-n 3 --backup-n 7 -o "
 Este script:
 - Detecta automaticamente o idioma da query
 - Busca 20 candidatos via yt-dlp
-- Filtra: duração 3-30min, tem transcrição, exclui shorts/notícias
+- Filtra: duração 3-60min, tem transcrição, exclui shorts/notícias
 - Aplica scoring composto (relevância semântica 35% + engajamento 30% + views 25% + duração 10%)
 - Retorna top 3 principais + 7 candidatos de backup (10 total)
 
@@ -87,7 +87,7 @@ Este script:
 - Suporta formatos VTT, SRT e JSON3 (parse automático)
 - Faz limpeza completa (remove timestamps, tags, repetições sobrepostas)
 - Trunca transcrições acima de ~20.000 tokens (80.000 chars)
-- Rejeita vídeos acima de 30 minutos
+- Rejeita vídeos acima de 1 hora (60 minutos)
 - Salva arquivos .md em `SKILL_DIR/output/transcripts/`
 - Retorna JSON com caminhos dos arquivos e metadados (incluindo duration_min)
 

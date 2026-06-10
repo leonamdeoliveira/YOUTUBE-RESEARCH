@@ -35,12 +35,12 @@ def validate_video_url(url: str) -> str:
     return url
 
 
-MAX_DURATION_SECONDS = 30 * 60
+MAX_DURATION_SECONDS = 60 * 60
 MAX_TRANSCRIPT_CHARS = 80_000
 
 
 def enforce_duration_limit(duration_seconds: int, video_id: str) -> None:
-    """Rejeita vídeos acima de 30 minutos antes de baixar a transcrição."""
+    """Rejeita vídeos acima de 1 hora antes de baixar a transcrição."""
     if duration_seconds > MAX_DURATION_SECONDS:
         raise ValueError(
             f"Vídeo {video_id} tem {duration_seconds//60}min — "
