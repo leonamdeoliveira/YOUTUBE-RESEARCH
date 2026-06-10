@@ -2,7 +2,7 @@
 
 ## Instalação Rápida (Universal)
 
-### Windows (PowerShell)
+### Windows  (PowerShell)
 
 ```powershell
 # Clone o repositório

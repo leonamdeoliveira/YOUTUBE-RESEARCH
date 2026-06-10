@@ -339,7 +339,7 @@ Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE]
 - [sentence-transformers](https://www.sbert.net/) — Modelos de embeddings multilíngues
 - [AgentSkills](https://agentskills.io/) — Padrão aberto para skills de agentes de IA
 
----
+----
 
 <p align="center">
   Feito com ❤️ para a comunidade de agentes de IA

@@ -43,6 +43,3 @@ output/transcripts/
 .DS_Store
 Thumbs.db
 
-# Arquivos de formulário e temporários
-form-*.md
-*.form.md
