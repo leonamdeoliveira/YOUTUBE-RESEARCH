@@ -66,12 +66,12 @@ def check_python_version():
 
 
 def download_model():
-    """Baixa o modelo paraphrase-multilingual-MiniLM-L12-v2."""
-    print("Verificando modelo paraphrase-multilingual-MiniLM-L12-v2...")
+    """Baixa o modelo sentence-transformers/paraphrase-multilingual-mpnet-base-v2."""
+    print("Verificando modelo sentence-transformers/paraphrase-multilingual-mpnet-base-v2...")
     try:
         from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        print("  Modelo paraphrase-multilingual-MiniLM-L12-v2 OK")
+        model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
+        print("  Modelo sentence-transformers/paraphrase-multilingual-mpnet-base-v2 OK")
         return True
     except Exception as e:
         print(f"  ERRO ao baixar modelo: {e}")

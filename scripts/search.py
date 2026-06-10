@@ -247,8 +247,8 @@ def select_top_videos(query: str, max_results: int = 20, top_n: int = 3, backup_
     if use_semantic:
         try:
             from sentence_transformers import SentenceTransformer
-            model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-            print("Modelo semântico carregado: paraphrase-multilingual-MiniLM-L12-v2", file=sys.stderr)
+            model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
+            print("Modelo semântico carregado: paraphrase-multilingual-mpnet-base-v2", file=sys.stderr)
         except Exception as e:
             print(f"Aviso: modelo semântico indisponível, usando keyword matching: {e}", file=sys.stderr)
 

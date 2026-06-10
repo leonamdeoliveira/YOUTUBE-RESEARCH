@@ -24,6 +24,152 @@ Este caminho será referenciado como `SKILL_DIR` em todos os comandos abaixo.
 
 **Como determinar:** O caminho é o diretório onde este arquivo `SKILL.md` está localizado.
 
+## Comportamento de Desambiguação e Qualidade de Query
+
+Antes de seguir os passos de execução desta skill (Passo 0–5), siga estas regras
+para garantir que a **query passada para os scripts seja clara e específica**.
+
+Você, agente de IA, é responsável por:
+
+- Interpretar a intenção do usuário.
+- Decidir se a query está clara o suficiente.
+- Perguntar por mais contexto quando houver ambiguidade.
+- Só então acionar os scripts (`search.py`, `transcribe.py`, `synthesize.py`).
+
+A skill em si **não** faz desambiguação nem conversa com o usuário; ela apenas
+executa o pipeline local com a query que você fornecer.
+
+### 1. Extração da query
+
+Quando o usuário pedir para usar esta skill (por exemplo, com `YT <query>`,
+`YT: <query>` ou frases como "pesquise no youtube sobre…"):
+
+1. Remova apenas o prefixo de ativação:
+   - `YT `
+   - `YT: `
+   - "pesquise no youtube sobre"
+   - "pesquisa no youtube sobre"
+2. Considere o restante como a `query_bruta` do usuário.
+3. **Não resuma nem encurte** a frase; preserve a intenção original.
+
+Exemplos:
+
+- `YT energia solar` → `query_bruta = "energia solar"`
+- `YT: o que é skill` → `query_bruta = "o que é skill"`
+- `pesquise no youtube sobre modelos de linguagem grandes`
+  → `query_bruta = "modelos de linguagem grandes"`
+
+### 2. Detecção de queries curtas demais
+
+Antes de chamar a skill:
+
+1. Remova conectores comuns de perguntas, como:
+   - `o que é`, `o que e`, `what is`, `qué es`, `que es`
+2. Conte quantas **palavras de conteúdo** restam (ignorando "de, em, a, o, e" etc.).
+
+Se, depois disso, restarem **1 ou 2 palavras apenas**, considere a query **possivelmente insuficiente**.
+
+Exemplos:
+
+- `o que é skill` → núcleo = `skill` → 1 palavra → **insuficiente**
+- `o que é modelo generativo` → núcleo = `modelo generativo` → 2 palavras, mas ainda ambíguo
+- `o que é skill em agentes de ia` → núcleo ≈ `skill em agentes de ia`
+  → várias palavras → potencialmente clara
+
+### 3. Detecção de ambiguidade sem lista fixa
+
+Você não depende de uma lista fixa de termos ambíguos.  
+Em vez disso, **pense explicitamente** sobre a pergunta:
+
+> "Se eu responder isso sem pedir mais contexto, existem 2 ou mais interpretações
+>  bem diferentes que poderiam ser a intenção do usuário?"
+
+Se a resposta for **sim**, trate a query como AMBÍGUA.
+
+Exemplos de queries AMBÍGUAS:
+
+- `o que é skill`  
+  (pode ser skill em IA, soft skills, skills em jogos, etc.)
+- `o que é token`  
+  (token de texto, token de autenticação, token de cripto)
+- `modelo generativo`  
+  (modelo em IA, modelo estatístico, outro contexto)
+- `prompt`  
+  (prompt de IA, prompt de comando, prompt em UX)
+
+Exemplos de queries CLARAS:
+
+- `o que é skill em agentes de IA e arquivos SKILL.md`
+- `diferença entre hard skills e soft skills no mercado de trabalho`
+- `como funcionam tokens de texto em modelos de linguagem`
+- `modelos generativos em machine learning para imagens`
+
+### 4. O que fazer quando a query for AMBÍGUA ou curta
+
+Se a query for:
+
+- curta demais (após remover "o que é / what is / qué es"), **ou**
+- claramente ambígua (vários sentidos muito diferentes possíveis),
+
+**NÃO chame os scripts da skill ainda.**
+
+Em vez disso, faça uma pergunta de clarificação para o usuário, em linguagem natural.
+
+Diretrizes:
+
+- Nomeie o termo ambíguo explicitamente.
+- Dê 2–3 exemplos de contextos possíveis.
+- Peça que o usuário explique em **uma frase**.
+
+Exemplos de perguntas:
+
+- Para `o que é skill`:
+  - `Quando você diz "skill", está falando de habilidades profissionais (hard/soft skills), de skills em agentes de IA / arquivos SKILL.md, de skills em jogos ou de outra coisa? Explique em uma frase.`
+- Para `o que é token`:
+  - `Você quer saber sobre tokens de texto em modelos de linguagem, tokens de API/autenticação ou tokens em criptomoedas? Explique em uma frase.`
+- Para `modelo generativo`:
+  - `Você quer entender modelo generativo em IA (como modelos de linguagem e diffusion) ou outro tipo de modelo? Explique em uma frase.`
+
+Após a resposta do usuário:
+
+1. **Reescreva internamente** uma query mais específica que reflita exatamente o contexto explicado.
+   - Ex.: usuário: `skill em agentes de IA e SKILL.md`  
+     → query_final: `o que é skill em agentes de IA e arquivos SKILL.md`
+2. Use essa `query_final` como `"SUA_QUERY_AQUI"` nos comandos de:
+   - `search.py`
+   - `synthesize.py`
+
+Somente então siga os passos normais da skill (Passo 0–5).
+
+### 5. O que fazer quando a query estiver CLARA
+
+Se, ao analisar a `query_bruta`, você concluir que:
+
+- há apenas **uma interpretação razoável**, e  
+- a frase já está suficientemente específica,
+
+então **não peça clarificação**.  
+Simplesmente use essa query (ou uma versão minimamente corrigida) como `"SUA_QUERY_AQUI"`.
+
+Exemplos:
+
+- Usuário: `YT o que é skill em agentes de IA e SKILL.md`
+  - Intenção clara → use `o que é skill em agentes de IA e SKILL.md`
+- Usuário: `pesquise no youtube sobre impactos da IA no mercado de trabalho brasileiro`
+  - Intenção clara → use `impactos da IA no mercado de trabalho brasileiro`
+
+### 6. Princípio geral
+
+Prefira **fazer uma pergunta de clarificação** em vez de:
+
+- Chamar a skill com uma query ambígua que possa trazer vídeos totalmente fora de contexto
+  (por exemplo, vídeos de jogos quando o usuário queria IA ou carreira).
+- Tentar "adivinhar" sozinho um único sentido quando você enxerga claramente
+  múltiplas intenções plausíveis.
+
+A skill `YT Research` assume que, quando você a aciona, a query já está
+**desambiguada e bem especificada**.
+
 ## Passo 0: Verificação Automática de Dependências
 
 A skill verifica e instala dependências automaticamente na primeira execução.
@@ -181,7 +327,7 @@ Este script:
 - torch (instalado automaticamente na primeira execução)
 - transformers (instalado automaticamente na primeira execução)
 - numpy (instalado automaticamente na primeira execução)
-- Modelo paraphrase-multilingual-MiniLM-L12-v2 (baixado automaticamente na primeira execução)
+- Modelo sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (baixado automaticamente na primeira execução)
 
 ## Estrutura de Arquivos
 
@@ -212,7 +358,7 @@ yt-research/
 - **Etapas 1-3:** Zero tokens de LLM (scripts Python puros)
 - **Etapa 4:** Agente lê transcrições e faz síntese diretamente
 - **Limpeza de transcrição:** Remove timestamps e formatação inútil antes de enviar ao agente
-- **Modelo semântico multilíngue:** paraphrase-multilingual-MiniLM-L12-v2 (~120MB) rodando localmente
+- **Modelo semântico multilíngue:** sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (~120MB) rodando localmente
 
 ## Troubleshooting
 
