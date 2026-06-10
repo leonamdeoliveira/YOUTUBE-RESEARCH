@@ -14,6 +14,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import urllib.request
 
 socket.setdefaulttimeout(30)
@@ -218,6 +219,7 @@ def clean_transcript(text: str) -> str:
 
     result = ' '.join(cleaned_blocks)
     result = re.sub(r'\s+', ' ', result)
+    result = unicodedata.normalize('NFC', result)
     return result.strip()
 
 
@@ -347,8 +349,13 @@ def download_subtitle_file(url: str, temp_dir: str, video_id: str, ext: str) -> 
 
     try:
         urllib.request.urlretrieve(url, output_path)
-        with open(output_path, 'r', encoding='utf-8', errors='replace') as f:
-            raw_text = f.read()
+        try:
+            with open(output_path, 'r', encoding='utf-8') as f:
+                raw_text = f.read()
+        except UnicodeDecodeError:
+            with open(output_path, 'r', encoding='latin-1') as f:
+                raw_text = f.read()
+        raw_text = raw_text.encode('utf-8').decode('utf-8')
         return load_transcript(raw_text, ext)
     except Exception as e:
         print(f"Erro ao baixar legenda: {e}", file=sys.stderr)
