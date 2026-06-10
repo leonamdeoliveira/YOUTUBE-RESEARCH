@@ -9,8 +9,13 @@ import io
 import json
 import os
 import re
+import shutil
+import socket
 import sys
 import tempfile
+import urllib.request
+
+socket.setdefaulttimeout(30)
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
@@ -251,7 +256,6 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
 
             word_count = len(cleaned.split())
 
-            import shutil
             shutil.rmtree(temp_dir, ignore_errors=True)
 
             return {
@@ -277,8 +281,6 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
 
 def download_subtitle_file(url: str, temp_dir: str, video_id: str, ext: str) -> str:
     """Baixa arquivo de legenda e retorna o texto processado."""
-    import urllib.request
-
     output_path = os.path.join(temp_dir, f'{video_id}.{ext}')
 
     try:

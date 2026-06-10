@@ -180,10 +180,10 @@ def calculate_score(video_info: dict, query: str, model=None) -> float:
     description = video_info.get('description') or ''
     score_semantic = calculate_semantic_relevance(query, title, description, model)
 
-    if 3 <= duration_min <= 30:
+    if 3 <= duration_min <= 60:
         score_duration = 1.0
-    elif 2 <= duration_min < 3 or 30 < duration_min <= 45:
-        score_duration = 0.5
+    elif duration_min < 3:
+        score_duration = 0.2
     else:
         score_duration = 0.2
 
@@ -223,7 +223,7 @@ def select_top_videos(query: str, max_results: int = 20, top_n: int = 3, backup_
             continue
 
         duration_min = (details.get('duration') or 0) / 60.0
-        if duration_min < 2 or duration_min > 45:
+        if duration_min < 3 or duration_min > 60:
             continue
 
         if is_short_or_news(details):
