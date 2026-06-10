@@ -27,9 +27,12 @@ os.environ["MKL_NUM_THREADS"] = str(_target_threads)
 os.environ["VECLIB_MAXIMUM_THREADS"] = str(_target_threads)
 os.environ["NUMEXPR_NUM_THREADS"] = str(_target_threads)
 
-import torch
-torch.set_num_threads(_target_threads)
-torch.set_num_interop_threads(_target_threads)
+try:
+    import torch
+    torch.set_num_threads(_target_threads)
+    torch.set_num_interop_threads(_target_threads)
+except ImportError:
+    pass
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
