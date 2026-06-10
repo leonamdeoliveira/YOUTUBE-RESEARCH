@@ -104,6 +104,18 @@ cp -r YOUTUBE-RESEARCH ~/.codeium/windsurf/skills/yt-research
 ```
 </details>
 
+<details>
+<summary><b>Codex</b></summary>
+
+```bash
+# Windows
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.codex\skills\yt-research" -Recurse
+
+# Linux/Mac
+cp -r YOUTUBE-RESEARCH ~/.codex/skills/yt-research
+```
+</details>
+
 ### Dependências
 
 A skill instala automaticamente na primeira execução. Se precisar instalar manualmente:
@@ -241,6 +253,7 @@ yt-research/
 | **Cursor** | ✅ Compatível | `~/.cursor/skills/yt-research/` |
 | **Windsurf** | ✅ Compatível | `~/.codeium/windsurf/skills/yt-research/` |
 | **Devin** | ✅ Compatível | `~/.codeium/windsurf/skills/yt-research/` |
+| **Codex** | ✅ Compatível | `~/.codex/skills/yt-research/` |
 | **GitHub Copilot** | ✅ Compatível | Via AgentSkills standard |
 | **Outros** | ✅ Compatível | Qualquer agente que suporte SKILL.md |
 

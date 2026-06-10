@@ -64,6 +64,16 @@ Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.codeium\winds
 cp -r YOUTUBE-RESEARCH ~/.codeium/windsurf/skills/yt-research
 ```
 
+### Codex
+
+```bash
+# Windows
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.codex\skills\yt-research" -Recurse
+
+# Linux/Mac
+cp -r YOUTUBE-RESEARCH ~/.codex/skills/yt-research
+```
+
 ## Verificação da Instalação
 
 Após instalar, verifique se a skill está no local correto:
