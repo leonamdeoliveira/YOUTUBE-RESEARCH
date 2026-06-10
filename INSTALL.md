@@ -96,7 +96,7 @@ A skill instala automaticamente as dependências na primeira execução. Se pref
 pip install -r requirements.txt
 ```
 
-O modelo `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` (~120MB) é baixado automaticamente na primeira execução.
+O modelo `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (~50MB) é baixado automaticamente na primeira execução.
 
 ## Teste Rápido
 
@@ -168,7 +168,7 @@ rm -rf ~/.agents/skills/yt-research
 
 A skill realiza uma verificação automática de dependências na **primeira execução**:
 - Instala pacotes via requirements.txt ou fallback direto
-- Baixa o modelo semântico sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+- Baixa o modelo semântico sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 - Cria o arquivo setup_done.json como confirmação
 
 Nas execuções seguintes, o setup é pulado. Zero overhead adicional.

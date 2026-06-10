@@ -130,7 +130,7 @@ Para instalação manual:
 pip install -r requirements.txt
 ```
 
-O modelo `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` (~120MB) é baixado automaticamente.
+O modelo `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (~50MB) é baixado automaticamente.
 
 ---
 

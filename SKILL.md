@@ -327,7 +327,7 @@ Este script:
 - torch (instalado automaticamente na primeira execução)
 - transformers (instalado automaticamente na primeira execução)
 - numpy (instalado automaticamente na primeira execução)
-- Modelo sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (baixado automaticamente na primeira execução)
+- Modelo sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (baixado automaticamente na primeira execução)
 
 ## Estrutura de Arquivos
 
@@ -358,7 +358,7 @@ yt-research/
 - **Etapas 1-3:** Zero tokens de LLM (scripts Python puros)
 - **Etapa 4:** Agente lê transcrições e faz síntese diretamente
 - **Limpeza de transcrição:** Remove timestamps e formatação inútil antes de enviar ao agente
-- **Modelo semântico multilíngue:** sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (~120MB) rodando localmente
+- **Modelo semântico multilíngue:** sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (~50MB) rodando localmente
 
 ## Troubleshooting
 
