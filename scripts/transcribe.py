@@ -78,7 +78,7 @@ def validate_video_url(url: str) -> str:
 
 
 MAX_DURATION_SECONDS = 60 * 60
-MAX_TRANSCRIPT_CHARS = 80_000
+MAX_TRANSCRIPT_CHARS = 100_000
 
 
 def enforce_duration_limit(duration_seconds: int, video_id: str) -> None:
