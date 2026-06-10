@@ -56,7 +56,7 @@ Este script:
 - Busca 20 candidatos via yt-dlp
 - Filtra: duração 3-30min, tem transcrição, exclui shorts/notícias
 - Aplica scoring composto (views 25% + engajamento 30% + semântica 35% + duração 10%)
-- Retorna top 3 com transcrição confirmada
+- Retorna top 3 principais + 7 candidatos de backup (10 total)
 
 **Se falhar:** Informe o usuário que não foi possível encontrar vídeos suficientes com transcrição.
 
@@ -69,12 +69,15 @@ python "<SKILL_DIR>/scripts/transcribe.py" "<SKILL_DIR>/output/search_results.js
 ```
 
 Este script:
-- Baixa transcrição dos 3 vídeos (legendas manuais ou automáticas)
+- Tenta transcrever os 3 vídeos principais em ordem de relevância
+- **Se algum falhar**, automaticamente tenta o próximo candidato de backup
+- Continua até ter 3 transcrições bem-sucedidas ou acabar a lista de candidatos
+- Baixa transcrição dos vídeos (legendas manuais ou automáticas)
 - Faz limpeza leve (remove timestamps, linhas vazias, repetições)
 - Salva arquivos .md em `output/transcripts/`
 - Retorna JSON com caminhos dos arquivos
 
-**Se falhar:** Informe quantas transcrições foram bem-sucedidas e prossega apenas com essas.
+**Se falhar:** Se nenhum candidato tiver transcrição, informa o usuário. Caso contrário, prossegue com as transcrições bem-sucedidas.
 
 ### Passo 3: Preparação da Síntese
 
@@ -191,8 +194,9 @@ yt-research/
 
 **"Nenhum vídeo encontrado com transcrição"**
 - Alguns vídeos não têm transcrição disponível
-- O script pula automaticamente para o próximo candidato
-- Se menos de 3 vídeos tiverem transcrição, informa o usuário
+- O script busca 10 candidatos (3 principais + 7 backups)
+- Se uma transcrição falhar, automaticamente tenta o próximo candidato
+- Só falha se nenhum dos candidatos tiver transcrição utilizável
 
 **"Erro ao carregar modelo semântico"**
 - O script usa fallback para keyword matching

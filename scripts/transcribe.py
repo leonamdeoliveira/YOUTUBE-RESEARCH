@@ -207,25 +207,37 @@ def download_subtitle_file(url: str, temp_dir: str, video_id: str, ext: str) -> 
         return None
 
 
-def transcribe_videos(videos_json: str, output_dir: str) -> list:
-    """Transcreve lista de vídeos."""
+def transcribe_videos(videos_json: str, output_dir: str, target_n: int = 3) -> list:
+    """Transcreve lista de vídeos, tentando backups até atingir target_n sucessos."""
     videos = json.loads(videos_json) if isinstance(videos_json, str) else videos_json
 
     os.makedirs(output_dir, exist_ok=True)
 
     results = []
+    success_count = 0
     for i, video in enumerate(videos, 1):
+        if success_count >= target_n:
+            remaining = len(videos) - i + 1
+            if remaining > 0:
+                print(f"Meta atingida: {success_count} transcrições. {remaining} candidatos não processados.", file=sys.stderr)
+            break
+
         url = video.get('url')
         video_id = video.get('video_id')
-        print(f"[{i}/{len(videos)}] Transcrevendo: {video.get('title', url)}", file=sys.stderr)
+        is_primary = video.get('is_primary', i <= target_n)
+        role = "principal" if is_primary else "backup"
+        print(f"[{i}/{len(videos)}] ({role}) Transcrevendo: {video.get('title', url)}", file=sys.stderr)
 
         result = download_transcript(url, output_dir, video_id)
         results.append(result)
 
         if result['success']:
-            print(f"  ✓ {result['word_count']} palavras ({result['type']}, {result['language']})", file=sys.stderr)
+            success_count += 1
+            print(f"  ✓ {result['word_count']} palavras ({result['type']}, {result['language']}) [{success_count}/{target_n}]", file=sys.stderr)
         else:
             print(f"  ✗ {result.get('error', 'Erro desconhecido')}", file=sys.stderr)
+            if not is_primary or success_count < target_n:
+                print(f"  → Tentando próximo candidato...", file=sys.stderr)
 
     return results
 
@@ -235,6 +247,7 @@ def main():
     parser.add_argument('input', help='JSON com lista de vídeos ou arquivo JSON')
     parser.add_argument('--output-dir', '-o', default=None, help='Diretório de saída (default: temp)')
     parser.add_argument('--output-json', help='Arquivo JSON de saída (default: stdout)')
+    parser.add_argument('--target-n', type=int, default=3, help='Número alvo de transcrições bem-sucedidas (default: 3)')
 
     args = parser.parse_args()
 
@@ -246,7 +259,7 @@ def main():
 
     output_dir = args.output_dir or os.path.join(tempfile.gettempdir(), 'yt_transcripts')
 
-    results = transcribe_videos(videos, output_dir)
+    results = transcribe_videos(videos, output_dir, target_n=args.target_n)
 
     output = json.dumps(results, ensure_ascii=False, indent=2)
 
@@ -259,7 +272,11 @@ def main():
         print(output)
 
     success_count = sum(1 for r in results if r['success'])
-    print(f"\nTranscrições: {success_count}/{len(results)} com sucesso", file=sys.stderr)
+    target = args.target_n
+    if success_count >= target:
+        print(f"\nTranscrições: {success_count}/{target} com sucesso (meta atingida)", file=sys.stderr)
+    else:
+        print(f"\nTranscrições: {success_count}/{target} com sucesso (meta não atingida, {len(results)} candidatos tentados)", file=sys.stderr)
 
     return 0 if success_count > 0 else 1
 

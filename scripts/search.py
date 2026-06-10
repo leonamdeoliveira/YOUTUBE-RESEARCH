@@ -182,7 +182,7 @@ def calculate_score(video_info: dict, query: str, model=None) -> float:
             0.10 * score_duration)
 
 
-def select_top_videos(query: str, max_results: int = 20, top_n: int = 3, use_semantic: bool = True):
+def select_top_videos(query: str, max_results: int = 20, top_n: int = 3, backup_n: int = 7, use_semantic: bool = True):
     """Pipeline completo: busca, filtra, pontua e seleciona top N."""
     language = detect_language(query)
     print(f"Idioma detectado: {language}", file=sys.stderr)
@@ -234,11 +234,16 @@ def select_top_videos(query: str, max_results: int = 20, top_n: int = 3, use_sem
         })
 
     scored_videos.sort(key=lambda x: x['score'], reverse=True)
-    selected = scored_videos[:top_n]
+    total_needed = top_n + backup_n
+    selected = scored_videos[:total_needed]
 
-    print(f"Vídeos selecionados: {len(selected)}", file=sys.stderr)
+    for idx, v in enumerate(selected):
+        v['is_primary'] = idx < top_n
+
+    print(f"Vídeos selecionados: {len(selected)} ({top_n} principais + {len(selected) - top_n} backup)", file=sys.stderr)
     for i, v in enumerate(selected, 1):
-        print(f"  {i}. [{v['score']}] {v['title']} ({v['duration_min']}min)", file=sys.stderr)
+        marker = "★" if i <= top_n else " "
+        print(f"  {marker} {i}. [{v['score']}] {v['title']} ({v['duration_min']}min)", file=sys.stderr)
 
     return selected
 
@@ -248,6 +253,7 @@ def main():
     parser.add_argument('query', help='Query de pesquisa')
     parser.add_argument('--max-results', type=int, default=20, help='Máximo de candidatos (default: 20)')
     parser.add_argument('--top-n', type=int, default=3, help='Número de vídeos para selecionar (default: 3)')
+    parser.add_argument('--backup-n', type=int, default=7, help='Número de candidatos extras de backup (default: 7)')
     parser.add_argument('--no-semantic', action='store_true', help='Desativa relevância semântica (mais rápido)')
     parser.add_argument('--output', '-o', help='Arquivo de saída JSON (default: stdout)')
 
@@ -257,6 +263,7 @@ def main():
         query=args.query,
         max_results=args.max_results,
         top_n=args.top_n,
+        backup_n=args.backup_n,
         use_semantic=not args.no_semantic,
     )
 

@@ -4,6 +4,7 @@ cleanup.py - Limpa arquivos temporários após a síntese.
 """
 
 import argparse
+import glob
 import io
 import os
 import shutil
@@ -21,16 +22,17 @@ def cleanup_temp_files(skill_dir: str, keep_final: bool = True):
         print(f"Diretório output não encontrado: {output_dir}", file=sys.stderr)
         return
 
-    temp_files = ['search_results.json', 'transcripts.json', 'synthesis_input.md']
+    temp_patterns = ['search_results*.json', 'transcripts.json', 'synthesis_input.md']
     temp_dirs = ['transcripts']
 
     removed = []
 
-    for filename in temp_files:
-        filepath = os.path.join(output_dir, filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
-            removed.append(filename)
+    for pattern in temp_patterns:
+        matches = glob.glob(os.path.join(output_dir, pattern))
+        for filepath in matches:
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+                removed.append(os.path.basename(filepath))
 
     for dirname in temp_dirs:
         dirpath = os.path.join(output_dir, dirname)
@@ -44,7 +46,8 @@ def cleanup_temp_files(skill_dir: str, keep_final: bool = True):
         print("Nenhum arquivo temporário encontrado para remover", file=sys.stderr)
 
     if keep_final:
-        final_files = [f for f in os.listdir(output_dir) if f.endswith('.md') and f not in temp_files]
+        temp_basenames = set(removed)
+        final_files = [f for f in os.listdir(output_dir) if f.endswith('.md') and f not in temp_basenames]
         if final_files:
             print(f"Resumos finais mantidos: {', '.join(final_files)}", file=sys.stderr)
 
