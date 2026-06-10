@@ -44,14 +44,14 @@ O diferencial? **Economia extrema de tokens**: 3 das 4 etapas do pipeline rodam 
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/yt-research.git
+git clone https://github.com/leonamdeoliveira/YOUTUBE-RESEARCH.git
 
 # Copie para o diretório universal de skills
 # Windows (PowerShell):
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.agents\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.agents\skills\yt-research" -Recurse
 
 # Linux/Mac:
-cp -r yt-research/yt-research ~/.agents/skills/
+cp -r YOUTUBE-RESEARCH ~/.agents/skills/yt-research
 ```
 
 ### Instalação por Agente
@@ -61,10 +61,10 @@ cp -r yt-research/yt-research ~/.agents/skills/
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.config\opencode\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.config\opencode\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.config/opencode/skills/
+cp -r YOUTUBE-RESEARCH ~/.config/opencode/skills/yt-research
 ```
 </details>
 
@@ -73,10 +73,10 @@ cp -r yt-research/yt-research ~/.config/opencode/skills/
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.claude\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.claude\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.claude/skills/
+cp -r YOUTUBE-RESEARCH ~/.claude/skills/yt-research
 ```
 </details>
 
@@ -85,10 +85,10 @@ cp -r yt-research/yt-research ~/.claude/skills/
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.cursor\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.cursor\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.cursor/skills/
+cp -r YOUTUBE-RESEARCH ~/.cursor/skills/yt-research
 ```
 </details>
 
@@ -97,10 +97,10 @@ cp -r yt-research/yt-research ~/.cursor/skills/
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.codeium\windsurf\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.codeium\windsurf\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.codeium/windsurf/skills/
+cp -r YOUTUBE-RESEARCH ~/.codeium/windsurf/skills/yt-research
 ```
 </details>
 

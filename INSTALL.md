@@ -6,20 +6,20 @@
 
 ```powershell
 # Clone o repositório
-git clone https://github.com/seu-usuario/yt-research.git
+git clone https://github.com/leonamdeoliveira/YOUTUBE-RESEARCH.git
 
-# Copie a pasta yt-research para o local universal
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.agents\skills\yt-research" -Recurse
+# Copie para o local universal de skills
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.agents\skills\yt-research" -Recurse
 ```
 
 ### Linux / macOS (Terminal)
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/yt-research.git
+git clone https://github.com/leonamdeoliveira/YOUTUBE-RESEARCH.git
 
-# Copie a pasta yt-research para o local universal
-cp -r yt-research/yt-research ~/.agents/skills/
+# Copie para o local universal de skills
+cp -r YOUTUBE-RESEARCH ~/.agents/skills/yt-research
 ```
 
 ## Instalação por Agente
@@ -28,40 +28,40 @@ cp -r yt-research/yt-research ~/.agents/skills/
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.config\opencode\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.config\opencode\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.config/opencode/skills/
+cp -r YOUTUBE-RESEARCH ~/.config/opencode/skills/yt-research
 ```
 
 ### Claude Code / Claude Desktop
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.claude\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.claude\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.claude/skills/
+cp -r YOUTUBE-RESEARCH ~/.claude/skills/yt-research
 ```
 
 ### Cursor
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.cursor\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.cursor\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.cursor/skills/
+cp -r YOUTUBE-RESEARCH ~/.cursor/skills/yt-research
 ```
 
 ### Windsurf / Devin
 
 ```bash
 # Windows
-Copy-Item -Path "yt-research\yt-research" -Destination "$env:USERPROFILE\.codeium\windsurf\skills\yt-research" -Recurse
+Copy-Item -Path "YOUTUBE-RESEARCH" -Destination "$env:USERPROFILE\.codeium\windsurf\skills\yt-research" -Recurse
 
 # Linux/Mac
-cp -r yt-research/yt-research ~/.codeium/windsurf/skills/
+cp -r YOUTUBE-RESEARCH ~/.codeium/windsurf/skills/yt-research
 ```
 
 ## Verificação da Instalação
@@ -157,4 +157,4 @@ rm -rf ~/.agents/skills/yt-research
 ## Suporte
 
 Para problemas ou dúvidas, abra uma issue no repositório:
-https://github.com/seu-usuario/yt-research/issues
+https://github.com/leonamdeoliveira/YOUTUBE-RESEARCH/issues
