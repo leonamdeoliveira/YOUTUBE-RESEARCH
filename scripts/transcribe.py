@@ -35,12 +35,12 @@ def validate_video_url(url: str) -> str:
     return url
 
 
-MAX_DURATION_SECONDS = 60 * 60
+MAX_DURATION_SECONDS = 30 * 60
 MAX_TRANSCRIPT_CHARS = 80_000
 
 
 def enforce_duration_limit(duration_seconds: int, video_id: str) -> None:
-    """Rejeita vídeos acima de 1 hora antes de baixar a transcrição."""
+    """Rejeita vídeos acima de 30 minutos antes de baixar a transcrição."""
     if duration_seconds > MAX_DURATION_SECONDS:
         raise ValueError(
             f"Vídeo {video_id} tem {duration_seconds//60}min — "
@@ -93,67 +93,87 @@ def load_transcript(text: str, ext: str = "") -> str:
 
 
 def clean_transcript(text: str) -> str:
-    """Limpeza completa: remove timestamps, tags VTT, repetições sobrepostas."""
-    text = re.sub(r'WEBVTT[^\n]*', '', text)
-    text = re.sub(r'Kind:\s*\w+', '', text)
-    text = re.sub(r'Language:\s*\w+', '', text)
+    """Limpeza completa: remove cabeçalhos, timestamps, tags VTT/SRT e repetições sobrepostas."""
+    if not text:
+        return ""
+
+    text = text.replace('\ufeff', '')
+    text = text.replace('\xa0', ' ')
+
+    text = re.sub(r'^WEBVTT\s*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^Kind:\s*.*$', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^Language:\s*.*$', '', text, flags=re.MULTILINE)
+
+    text = re.sub(
+        r'^\d{2}:\d{2}:\d{2}[\.,]\d{3}\s*-->.*$',
+        '',
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r'^\d{2}:\d{2}[\.,]\d{3}\s*-->.*$',
+        '',
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r'^\d{2}:\d{2}:\d{2}\s*-->.*$',
+        '',
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r'^\d{2}:\d{2}\s*-->.*$',
+        '',
+        text,
+        flags=re.MULTILINE,
+    )
+
+    text = re.sub(r'^\d+\s*$', '', text, flags=re.MULTILINE)
 
     text = re.sub(r'<\d{2}:\d{2}:\d{2}\.\d{3}>', '', text)
     text = re.sub(r'<\d{2}:\d{2}:\d{2}>', '', text)
-    text = re.sub(r'</?c>', '', text)
-    text = re.sub(r'</?v[^>]*>', '', text)
     text = re.sub(r'<[^>]+>', '', text)
 
-    text = text.replace('&gt;', '>')
-    text = text.replace('&lt;', '<')
-    text = text.replace('&amp;', '&')
-    text = text.replace('&nbsp;', ' ')
+    text = re.sub(r'^NOTE\b.*$', '', text, flags=re.MULTILINE)
 
-    text = re.sub(r'^\d+$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->.*$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^\d{2}:\d{2}\s*-->.*$', '', text, flags=re.MULTILINE)
+    lines = [line.strip() for line in text.splitlines()]
 
-    lines = text.split('\n')
     blocks = []
     current_block = []
-
     for line in lines:
-        line = line.strip()
         if not line:
             if current_block:
                 blocks.append(' '.join(current_block))
                 current_block = []
             continue
-        if re.match(r'^NOTE\b', line):
-            continue
         current_block.append(line)
-
     if current_block:
         blocks.append(' '.join(current_block))
 
     cleaned_blocks = []
-    for i, block in enumerate(blocks):
-        if i == 0:
+    for block in blocks:
+        if not cleaned_blocks:
             cleaned_blocks.append(block)
+            continue
+
+        prev_block = cleaned_blocks[-1]
+        prev_words = prev_block.split()
+        curr_words = block.split()
+
+        overlap = 0
+        max_check = min(len(prev_words), len(curr_words), 20)
+        for check_len in range(max_check, 0, -1):
+            if prev_words[-check_len:] == curr_words[:check_len]:
+                overlap = check_len
+                break
+
+        if overlap > 0:
+            remainder = ' '.join(curr_words[overlap:]).strip()
+            if remainder:
+                cleaned_blocks.append(remainder)
         else:
-            prev_block = cleaned_blocks[-1]
-            words_prev = prev_block.split()
-            words_curr = block.split()
-
-            overlap = 0
-            max_check = min(len(words_prev), len(words_curr), 20)
-
-            for check_len in range(max_check, 0, -1):
-                if words_prev[-check_len:] == words_curr[:check_len]:
-                    overlap = check_len
-                    break
-
-            if overlap > 0:
-                new_text = ' '.join(words_curr[overlap:])
-                if new_text:
-                    cleaned_blocks.append(new_text)
-            else:
-                cleaned_blocks.append(block)
+            cleaned_blocks.append(block)
 
     result = ' '.join(cleaned_blocks)
     result = re.sub(r'\s+', ' ', result)
@@ -263,6 +283,7 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
                 'url': video_url,
                 'title': info.get('title'),
                 'channel': info.get('uploader'),
+                'duration_min': round((info.get('duration') or 0) / 60, 1),
                 'language': transcript_lang,
                 'type': transcript_type,
                 'word_count': word_count,

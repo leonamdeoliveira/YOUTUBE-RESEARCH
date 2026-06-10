@@ -22,35 +22,15 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Output da skill (resumos gerados)
-output/*.md
-output/*.json
-output/transcripts/
-
-# Arquivos temporários
-*.tmp
-*.temp
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
+*.pyo
 
 # ============================================================
 # SEGURANÇA — Outputs nunca devem ser commitados
 # Os resumos podem conter conteúdo sensível das pesquisas.
 # ============================================================
 
-# Padrões de output da skill
+# Output da skill (resumos e temporários)
 output/
-output/**
 *.transcript.md
 *.research.md
 *.synthesis.md
@@ -58,16 +38,14 @@ output/**
 *_synthesis.md
 *_research.md
 
-# Cache do modelo semântico
-.cache/
-__pycache__/
-*.pyc
-*.pyo
-
-# Temporários do yt-dlp
+# Arquivos temporários
+*.tmp
+*.temp
 *.part
 *.ytdl
-*.temp
+
+# Cache do modelo semântico
+.cache/
 
 # Credenciais (nunca commitar)
 .env
@@ -80,3 +58,13 @@ __pycache__/
 *.log
 logs/
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

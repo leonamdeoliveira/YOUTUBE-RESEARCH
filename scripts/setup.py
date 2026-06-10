@@ -4,7 +4,6 @@ setup.py - Instalação automática de dependências da skill yt-research.
 Executa automaticamente na primeira execução da skill.
 """
 
-import importlib
 import io
 import os
 import subprocess
@@ -12,16 +11,6 @@ import sys
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-
-DEPENDENCIES = {
-    'yt_dlp': 'yt-dlp',
-    'sentence_transformers': 'sentence-transformers',
-}
-
-MINIMUM_VERSIONS = {
-    'yt-dlp': '2024.01.01',
-    'sentence-transformers': '2.0.0',
-}
 
 
 def get_requirements_path():
@@ -74,31 +63,6 @@ def check_python_version():
         return False
     print(f"Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} OK")
     return True
-
-
-def check_dependency(module_name: str) -> bool:
-    """Verifica se um módulo está instalado."""
-    try:
-        importlib.import_module(module_name)
-        return True
-    except ImportError:
-        return False
-
-
-def install_dependency(package_name: str):
-    """Instala um pacote via pip."""
-    print(f"Instalando {package_name}...")
-    try:
-        subprocess.check_call(
-            [sys.executable, '-m', 'pip', 'install', package_name, '--quiet'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE
-        )
-        print(f"  {package_name} instalado com sucesso")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"  ERRO ao instalar {package_name}: {e}")
-        return False
 
 
 def download_model():

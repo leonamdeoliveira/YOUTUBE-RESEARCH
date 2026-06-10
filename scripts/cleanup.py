@@ -16,7 +16,15 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='repla
 
 def cleanup_temp_files(skill_dir: str, keep_final: bool = True):
     """Remove arquivos temporários, mantendo apenas resumos finais."""
-    output_dir = os.path.join(skill_dir, 'output')
+    skill_dir = os.path.abspath(skill_dir)
+    if not os.path.isdir(skill_dir):
+        print(f"Diretório da skill inválido: {skill_dir}", file=sys.stderr)
+        return
+
+    output_dir = os.path.abspath(os.path.join(skill_dir, 'output'))
+    if not output_dir.startswith(skill_dir):
+        print(f"Output dir fora da skill: {output_dir}", file=sys.stderr)
+        return
 
     if not os.path.exists(output_dir):
         print(f"Diretório output não encontrado: {output_dir}", file=sys.stderr)

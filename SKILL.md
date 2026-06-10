@@ -14,58 +14,69 @@ description: Pesquisa no YouTube com síntese acadêmica. Use quando o usuário 
 
 ## Configuração do Caminho
 
-**IMPORTANTE:** Antes de executar qualquer script, determine o caminho absoluto desta skill:
+**IMPORTANTE:** Antes de executar qualquer script, determine o caminho absoluto desta skill.
 
-- No Windows: `C:\Users\<usuario>\.agents\skills\yt-research\`
-- No Linux/Mac: `~/.agents/skills/yt-research/`
+Este caminho será referenciado como `SKILL_DIR` em todos os comandos abaixo.
 
-Use este caminho como `<SKILL_DIR>` em todos os comandos abaixo.
+**Exemplos de SKILL_DIR:**
+- Windows: `C:\Users\SeuUsuario\.agents\skills\yt-research`
+- Linux/Mac: `/home/seuusuario/.agents/skills/yt-research`
+
+**Como determinar:** O caminho é o diretório onde este arquivo `SKILL.md` está localizado.
 
 ## Passo 0: Verificação Automática de Dependências
 
 **ANTES de qualquer outra coisa**, verifique se as dependências estão instaladas:
 
 ```bash
-python "<SKILL_DIR>/scripts/setup.py"
+python "SKILL_DIR/scripts/setup.py"
+```
+
+Substitua `SKILL_DIR` pelo caminho real determinado acima.
+
+**Exemplo (Windows):**
+```bash
+python "C:\Users\Leonam\.agents\skills\yt-research\scripts\setup.py"
 ```
 
 Este script:
 - Verifica Python 3.8+
-- Verifica se `yt-dlp` está instalado
-- Verifica se `sentence-transformers` está instalado
-- Instala automaticamente o que estiver faltando
+- Instala dependências via `requirements.txt`
 - Baixa o modelo `paraphrase-multilingual-MiniLM-L12-v2` (~120MB) na primeira execução
 
 **Se o setup falhar:** Informe o usuário e sugira instalação manual:
 ```bash
-pip install yt-dlp sentence-transformers
+pip install -r SKILL_DIR/requirements.txt
 ```
 
-## Workflow Completo
-
-### Passo 1: Busca e Seleção de Vídeos
+## Passo 1: Busca e Seleção de Vídeos
 
 Execute o script de busca para encontrar os 3 vídeos mais relevantes:
 
 ```bash
-python "<SKILL_DIR>/scripts/search.py" "<query>" --top-n 3 -o "<SKILL_DIR>/output/search_results.json"
+python "SKILL_DIR/scripts/search.py" "SUA_QUERY_AQUI" --top-n 3 --backup-n 7 -o "SKILL_DIR/output/search_results.json"
+```
+
+**Exemplo real:**
+```bash
+python "SKILL_DIR/scripts/search.py" "energia solar" --top-n 3 --backup-n 7 -o "SKILL_DIR/output/search_results.json"
 ```
 
 Este script:
 - Detecta automaticamente o idioma da query
 - Busca 20 candidatos via yt-dlp
 - Filtra: duração 3-30min, tem transcrição, exclui shorts/notícias
-- Aplica scoring composto (views 25% + engajamento 30% + semântica 35% + duração 10%)
+- Aplica scoring composto (relevância semântica 35% + engajamento 30% + views 25% + duração 10%)
 - Retorna top 3 principais + 7 candidatos de backup (10 total)
 
 **Se falhar:** Informe o usuário que não foi possível encontrar vídeos suficientes com transcrição.
 
-### Passo 2: Transcrição dos Vídeos
+## Passo 2: Transcrição dos Vídeos
 
 Execute o script de transcrição:
 
 ```bash
-python "<SKILL_DIR>/scripts/transcribe.py" "<SKILL_DIR>/output/search_results.json" -o "<SKILL_DIR>/output/transcripts" --output-json "<SKILL_DIR>/output/transcripts.json"
+python "SKILL_DIR/scripts/transcribe.py" "SKILL_DIR/output/search_results.json" -o "SKILL_DIR/output/transcripts" --output-json "SKILL_DIR/output/transcripts.json" --target-n 3
 ```
 
 Este script:
@@ -73,28 +84,37 @@ Este script:
 - **Se algum falhar**, automaticamente tenta o próximo candidato de backup
 - Continua até ter 3 transcrições bem-sucedidas ou acabar a lista de candidatos
 - Baixa transcrição dos vídeos (legendas manuais ou automáticas)
-- Faz limpeza leve (remove timestamps, linhas vazias, repetições)
-- Salva arquivos .md em `output/transcripts/`
-- Retorna JSON com caminhos dos arquivos
+- Suporta formatos VTT, SRT e JSON3 (parse automático)
+- Faz limpeza completa (remove timestamps, tags, repetições sobrepostas)
+- Trunca transcrições acima de ~20.000 tokens (80.000 chars)
+- Rejeita vídeos acima de 30 minutos
+- Salva arquivos .md em `SKILL_DIR/output/transcripts/`
+- Retorna JSON com caminhos dos arquivos e metadados (incluindo duration_min)
 
 **Se falhar:** Se nenhum candidato tiver transcrição, informa o usuário. Caso contrário, prossegue com as transcrições bem-sucedidas.
 
-### Passo 3: Preparação da Síntese
+## Passo 3: Preparação da Síntese
 
 Execute o script de preparação:
 
 ```bash
-python "<SKILL_DIR>/scripts/synthesize.py" "<SKILL_DIR>/output/transcripts.json" -q "<query>" -o "<SKILL_DIR>/output/synthesis_input.md"
+python "SKILL_DIR/scripts/synthesize.py" "SKILL_DIR/output/transcripts.json" -q "SUA_QUERY_AQUI" -o "SKILL_DIR/output/synthesis_input.md"
+```
+
+**Exemplo real:**
+```bash
+python "SKILL_DIR/scripts/synthesize.py" "SKILL_DIR/output/transcripts.json" -q "energia solar" -o "SKILL_DIR/output/synthesis_input.md"
 ```
 
 Este script:
-- Lê as transcrições
+- Lê as transcrições do JSON
 - Prepara input estruturado com instruções para o agente
+- Inclui metadados dos vídeos (título, canal, duração, palavras)
 - Inclui matriz de síntese para uso interno
 
-### Passo 4: Síntese Final (Pelo Agente)
+## Passo 4: Síntese Final (Pelo Agente)
 
-**Leia o arquivo `output/synthesis_input.md`** e siga as instruções contidas nele para criar a síntese integrativa.
+**Leia o arquivo `SKILL_DIR/output/synthesis_input.md`** e siga as instruções contidas nele para criar a síntese integrativa.
 
 O arquivo contém:
 - Query original do usuário
@@ -105,32 +125,35 @@ O arquivo contém:
 
 **Sua tarefa:** Ler as transcrições e criar uma **síntese integrativa** (não resumo) seguindo a metodologia acadêmica descrita no arquivo.
 
-### Passo 5: Output para o Usuário
+## Passo 5: Output para o Usuário
 
 Após criar a síntese:
 
 1. **Mostre o resultado no chat** formatado em markdown
 2. **Pergunte se quer salvar:** "Deseja salvar esta pesquisa em arquivo? (sim/não)"
-3. **Se sim:** Salve em `<SKILL_DIR>/output/<query-slug>.md` com a estrutura:
+3. **Se sim:** Salve em `SKILL_DIR/output/NOME_DA_PESQUISA.md` com a estrutura:
 
 ```markdown
-# <Query do usuário>
+# Título da Pesquisa
 
 <conteúdo da síntese>
 
 ---
-*Pesquisa realizada em <data>*
+*Pesquisa realizada em DD/MM/AAAA*
 ```
 
-### Passo 6: Limpeza de Arquivos Temporários
+O nome do arquivo deve ser um slug da query (ex: "energia-solar.md").
+
+## Passo 6: Limpeza de Arquivos Temporários
 
 Após salvar o resumo final (se o usuário quiser salvar), execute o script de limpeza:
 
 ```bash
-python "<SKILL_DIR>/scripts/cleanup.py" "<SKILL_DIR>"
+python "SKILL_DIR/scripts/cleanup.py" "SKILL_DIR"
 ```
 
 Este script:
+- Valida se o SKILL_DIR existe e é válido
 - Remove `search_results.json`, `transcripts.json`, `synthesis_input.md`
 - Remove pasta `transcripts/` com arquivos individuais
 - Mantém apenas os resumos finais salvos em `output/`
@@ -171,6 +194,7 @@ Este script:
 yt-research/
 ├── SKILL.md                    # Este arquivo
 ├── README.md                   # Guia do usuário
+├── requirements.txt            # Dependências Python
 ├── scripts/
 │   ├── setup.py                # Instalação automática de dependências
 │   ├── search.py               # Busca + seleção (zero tokens)
@@ -207,5 +231,5 @@ yt-research/
 - O script filtra por contagem mínima de palavras
 
 **Dependências não instalam automaticamente**
-- Execute manualmente: `pip install yt-dlp sentence-transformers`
-- Ou execute: `python <SKILL_DIR>/scripts/setup.py`
+- Execute manualmente: `pip install -r SKILL_DIR/requirements.txt`
+- Ou execute: `python SKILL_DIR/scripts/setup.py`
