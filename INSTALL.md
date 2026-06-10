@@ -93,7 +93,7 @@ Deve retornar `True` ou mostrar o caminho do arquivo.
 A skill instala automaticamente as dependências na primeira execução. Se preferir instalar manualmente:
 
 ```bash
-pip install yt-dlp sentence-transformers
+pip install -r requirements.txt
 ```
 
 O modelo `paraphrase-multilingual-MiniLM-L12-v2` (~120MB) é baixado automaticamente na primeira execução.
@@ -141,7 +141,7 @@ Deve retornar Python 3.8 ou superior.
 Instale manualmente:
 
 ```bash
-pip install yt-dlp sentence-transformers
+pip install -r requirements.txt
 ```
 
 ### Erro de permissão

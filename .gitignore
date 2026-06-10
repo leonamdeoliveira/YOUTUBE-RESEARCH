@@ -43,3 +43,40 @@ output/transcripts/
 .DS_Store
 Thumbs.db
 
+# ============================================================
+# SEGURANÇA — Outputs nunca devem ser commitados
+# Os resumos podem conter conteúdo sensível das pesquisas.
+# ============================================================
+
+# Padrões de output da skill
+output/
+output/**
+*.transcript.md
+*.research.md
+*.synthesis.md
+*_resumo.md
+*_synthesis.md
+*_research.md
+
+# Cache do modelo semântico
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporários do yt-dlp
+*.part
+*.ytdl
+*.temp
+
+# Credenciais (nunca commitar)
+.env
+.env.local
+.env.*.local
+*.key
+*.secret
+
+# Logs
+*.log
+logs/
+

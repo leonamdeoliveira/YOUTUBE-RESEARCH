@@ -16,6 +16,51 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
+def validate_video_url(url: str) -> str:
+    """Valida que a URL é um link válido do YouTube."""
+    url = url.strip()
+    if not url:
+        raise ValueError("URL vazia")
+    if len(url) > 500:
+        raise ValueError("URL muito longa")
+    if not re.match(r'^https?://(www\.)?(youtube\.com|youtu\.be)/', url):
+        raise ValueError(f"URL não é um link válido do YouTube: {url}")
+    if re.search(r'[;&|`$()]', url):
+        raise ValueError(f"URL contém caracteres suspeitos: {url}")
+    return url
+
+
+MAX_DURATION_SECONDS = 60 * 60
+MAX_TRANSCRIPT_CHARS = 80_000
+
+
+def enforce_duration_limit(duration_seconds: int, video_id: str) -> None:
+    """Rejeita vídeos acima de 1 hora antes de baixar a transcrição."""
+    if duration_seconds > MAX_DURATION_SECONDS:
+        raise ValueError(
+            f"Vídeo {video_id} tem {duration_seconds//60}min — "
+            f"excede limite de {MAX_DURATION_SECONDS//60}min."
+        )
+
+
+def truncate_transcript(text: str, video_title: str = "") -> str:
+    """Trunca transcrição em ~20.000 tokens para não explodir contexto do LLM."""
+    if len(text) <= MAX_TRANSCRIPT_CHARS:
+        return text
+
+    truncated = text[:MAX_TRANSCRIPT_CHARS]
+    last_newline = truncated.rfind('\n')
+    if last_newline > MAX_TRANSCRIPT_CHARS * 0.8:
+        truncated = truncated[:last_newline]
+
+    aviso = (
+        f"\n\n---\n"
+        f"TRANSCRIÇÃO TRUNCADA: '{video_title}' excedeu {MAX_TRANSCRIPT_CHARS:,} chars "
+        f"(~20.000 tokens). Primeiros {len(truncated):,} chars incluídos.\n---"
+    )
+    return truncated + aviso
+
+
 def clean_transcript(text: str) -> str:
     """Limpeza completa: remove timestamps, tags VTT, repetições sobrepostas."""
     text = re.sub(r'WEBVTT[^\n]*', '', text)
@@ -88,6 +133,8 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
     """Baixa transcrição de um vídeo via yt-dlp."""
     import yt_dlp
 
+    video_url = validate_video_url(video_url)
+
     if not video_id:
         video_id = video_url.split('v=')[-1].split('&')[0]
 
@@ -107,6 +154,9 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
+
+            duration_seconds = info.get('duration') or 0
+            enforce_duration_limit(duration_seconds, video_id)
 
             subtitles = info.get('subtitles', {})
             auto_captions = info.get('automatic_captions', {})
@@ -156,6 +206,13 @@ def download_transcript(video_url: str, output_dir: str, video_id: str = None) -
                 }
 
             cleaned = clean_transcript(transcript_text)
+
+            original_len = len(cleaned)
+            cleaned = truncate_transcript(cleaned, info.get('title', 'Sem título'))
+            if len(cleaned) < original_len:
+                print(f"  Transcrição truncada: {original_len:,} -> {MAX_TRANSCRIPT_CHARS:,} chars", file=sys.stderr)
+            else:
+                print(f"  Transcrição OK: {len(cleaned):,} chars (dentro do limite)", file=sys.stderr)
 
             output_path = os.path.join(output_dir, f'{video_id}.md')
             with open(output_path, 'w', encoding='utf-8') as f:

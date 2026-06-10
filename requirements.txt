@@ -1,0 +1,7 @@
+# YT Research — Dependências
+# Instalar com: pip install -r requirements.txt
+yt-dlp>=2024.1.0
+sentence-transformers>=2.7.0
+torch>=2.0.0
+transformers>=4.35.0
+numpy>=1.24.0

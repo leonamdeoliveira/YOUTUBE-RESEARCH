@@ -121,7 +121,7 @@ cp -r YOUTUBE-RESEARCH ~/.codex/skills/yt-research
 A skill instala automaticamente na primeira execução. Se precisar instalar manualmente:
 
 ```bash
-pip install yt-dlp sentence-transformers
+pip install -r requirements.txt
 ```
 
 O modelo `paraphrase-multilingual-MiniLM-L12-v2` (~120MB) é baixado automaticamente.
@@ -287,7 +287,7 @@ python ~/.agents/skills/yt-research/scripts/setup.py
 Ou instale diretamente:
 
 ```bash
-pip install yt-dlp sentence-transformers
+pip install -r requirements.txt
 ```
 </details>
 
@@ -313,6 +313,18 @@ Verifique se a pasta `yt-research` está no local correto para seu agente. Consu
 - As transcrições são processadas localmente
 - O modelo semântico roda 100% local (sem envio de dados)
 - Nenhum dado é enviado para terceiros além do YouTube
+
+---
+
+## Aviso de Segurança dos Outputs
+
+Os resumos gerados em `output/` podem conter transcrições das suas pesquisas.
+
+- A pasta `output/` está no `.gitignore` e **nunca será commitada automaticamente**
+- Nunca execute `git add output/` ou `git add -f`
+- Nunca remova `output/` do `.gitignore`
+- Para versionar seus resumos, use um repositório privado separado
+- Para compartilhar pesquisas, copie apenas o arquivo `.md` desejado
 
 ---
 

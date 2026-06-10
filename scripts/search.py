@@ -15,6 +15,17 @@ import os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+
+def sanitize_query(query: str) -> str:
+    """Remove caracteres que podem ser interpretados como argumentos de shell."""
+    query = query.strip()
+    query = re.sub(r'[\x00-\x1f\x7f]', '', query)
+    if len(query) > 200:
+        query = query[:200]
+    if not query:
+        raise ValueError("Query inválida ou vazia após sanitização")
+    return query
+
 def detect_language(query: str) -> str:
     """Detecta idioma da query baseado em palavras comuns."""
     pt_words = {'o', 'a', 'os', 'as', 'um', 'uma', 'de', 'da', 'do', 'para', 'com', 'sobre', 'como', 'qual', 'quais', 'e', 'é', 'que', 'em', 'no', 'na'}
@@ -184,6 +195,7 @@ def calculate_score(video_info: dict, query: str, model=None) -> float:
 
 def select_top_videos(query: str, max_results: int = 20, top_n: int = 3, backup_n: int = 7, use_semantic: bool = True):
     """Pipeline completo: busca, filtra, pontua e seleciona top N."""
+    query = sanitize_query(query)
     language = detect_language(query)
     print(f"Idioma detectado: {language}", file=sys.stderr)
 

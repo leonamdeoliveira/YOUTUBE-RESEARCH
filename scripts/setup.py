@@ -6,6 +6,7 @@ Executa automaticamente na primeira execução da skill.
 
 import importlib
 import io
+import os
 import subprocess
 import sys
 
@@ -21,6 +22,49 @@ MINIMUM_VERSIONS = {
     'yt-dlp': '2024.01.01',
     'sentence-transformers': '2.0.0',
 }
+
+
+def get_requirements_path():
+    """Retorna o caminho absoluto para requirements.txt."""
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'requirements.txt')
+    )
+
+
+def install_from_requirements():
+    """Instala dependências usando requirements.txt."""
+    req_file = get_requirements_path()
+    if os.path.exists(req_file):
+        print(f"Instalando de {req_file}...")
+        try:
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-r", req_file],
+                check=True
+            )
+            print("Dependências instaladas com sucesso via requirements.txt")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"ERRO ao instalar via requirements.txt: {e}")
+            return False
+    else:
+        print("requirements.txt não encontrado, usando fallback...")
+        return install_dependencies_fallback()
+
+
+def install_dependencies_fallback():
+    """Fallback: instala dependências diretamente."""
+    packages = ["yt-dlp>=2024.1.0", "sentence-transformers>=2.7.0"]
+    print(f"Instalando: {', '.join(packages)}...")
+    try:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install"] + packages,
+            check=True
+        )
+        print("Dependências instaladas com sucesso")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"ERRO ao instalar dependências: {e}")
+        return False
 
 
 def check_python_version():
@@ -81,25 +125,9 @@ def setup():
         return False
 
     print()
-    print("Verificando dependências...")
-
-    missing = []
-    for module_name, package_name in DEPENDENCIES.items():
-        if check_dependency(module_name):
-            print(f"  {package_name} OK")
-        else:
-            print(f"  {package_name} NÃO ENCONTRADO")
-            missing.append(package_name)
-
-    if missing:
-        print()
-        print("Instalando dependências faltantes...")
-        for package_name in missing:
-            if not install_dependency(package_name):
-                return False
-    else:
-        print()
-        print("Todas as dependências já estão instaladas")
+    print("Instalando dependências...")
+    if not install_from_requirements():
+        return False
 
     print()
     print("Verificando modelo semântico...")
