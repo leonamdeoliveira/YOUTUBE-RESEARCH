@@ -164,6 +164,20 @@ Remove-Item "$env:USERPROFILE\.agents\skills\yt-research" -Recurse -Force
 rm -rf ~/.agents/skills/yt-research
 ```
 
+## Comportamento de Inicialização
+
+A skill realiza uma verificação automática de dependências na **primeira execução**:
+- Instala pacotes via requirements.txt ou fallback direto
+- Baixa o modelo semântico paraphrase-multilingual-MiniLM-L12-v2
+- Cria o arquivo setup_done.json como confirmação
+
+Nas execuções seguintes, o setup é pulado. Zero overhead adicional.
+
+Para forçar reinstalação manualmente, delete `setup_done.json` e rode:
+```bash
+python "SKILL_DIR/scripts/setup.py"
+```
+
 ## Suporte
 
 Para problemas ou dúvidas, abra uma issue no repositório:

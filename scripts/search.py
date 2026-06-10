@@ -9,11 +9,52 @@ import io
 import json
 import math
 import re
+import subprocess
 import sys
 import os
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+
+def get_skill_dir() -> str:
+    """Retorna o caminho absoluto da raiz da skill."""
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def check_setup_done(skill_dir: str) -> bool:
+    """Retorna True se o setup já foi executado anteriormente."""
+    flag = os.path.join(skill_dir, "setup_done.json")
+    if not os.path.exists(flag):
+        return False
+    try:
+        with open(flag, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("installed", False) is True
+    except (json.JSONDecodeError, IOError, OSError):
+        return False
+
+
+def run_setup_if_needed(skill_dir: str) -> bool:
+    """
+    Executa setup automaticamente apenas na primeira vez.
+    Retorna True se ok, False se falhou.
+    """
+    if check_setup_done(skill_dir):
+        return True
+    setup_script = os.path.join(skill_dir, "scripts", "setup.py")
+    if not os.path.exists(setup_script):
+        print("ERRO: setup.py não encontrado.", file=sys.stderr)
+        return False
+    try:
+        subprocess.run([sys.executable, setup_script], check=True, timeout=300)
+        return check_setup_done(skill_dir)
+    except subprocess.TimeoutExpired:
+        print("ERRO: setup excedeu o tempo limite.", file=sys.stderr)
+        return False
+    except subprocess.CalledProcessError:
+        print("ERRO: setup falhou ao instalar dependências.", file=sys.stderr)
+        return False
 
 
 def sanitize_query(query: str) -> str:
@@ -268,8 +309,14 @@ def main():
     parser.add_argument('--backup-n', type=int, default=7, help='Número de candidatos extras de backup (default: 7)')
     parser.add_argument('--no-semantic', action='store_true', help='Desativa relevância semântica (mais rápido)')
     parser.add_argument('--output', '-o', help='Arquivo de saída JSON (default: stdout)')
+    parser.add_argument('--skill-dir', type=str, default=None, help='Caminho da skill (padrão: detecção automática)')
 
     args = parser.parse_args()
+
+    skill_dir = args.skill_dir if args.skill_dir else get_skill_dir()
+
+    if not run_setup_if_needed(skill_dir):
+        return 1
 
     results = select_top_videos(
         query=args.query,

@@ -78,8 +78,24 @@ def download_model():
         return False
 
 
+def write_setup_flag(skill_dir: str) -> None:
+    """Cria o arquivo setup_done.json na raiz da skill como flag de conclusão."""
+    import json
+    import datetime
+    flag_path = os.path.join(skill_dir, "setup_done.json")
+    data = {
+        "installed": True,
+        "timestamp": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-3))).isoformat()
+    }
+    with open(flag_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    print("Setup concluído com sucesso. Dependências e modelo semântico instalados.")
+
+
 def setup():
     """Executa setup completo."""
+    skill_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
     print("=" * 50)
     print("YT Research - Instalação de Dependências")
     print("=" * 50)
@@ -102,6 +118,8 @@ def setup():
     print("=" * 50)
     print("Setup concluído com sucesso!")
     print("=" * 50)
+
+    write_setup_flag(skill_dir)
     return True
 
 

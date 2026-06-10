@@ -118,7 +118,12 @@ cp -r YOUTUBE-RESEARCH ~/.codex/skills/yt-research
 
 ### Dependências
 
-A skill instala automaticamente na primeira execução. Se precisar instalar manualmente:
+A skill instala automaticamente na primeira execução. Não é necessário instalar nada manualmente.
+
+**Início:** A primeira execução instala as dependências automaticamente.
+As próximas execuções iniciam instantaneamente.
+
+Para instalação manual:
 
 ```bash
 pip install -r requirements.txt

@@ -47,6 +47,9 @@ output/
 # Cache do modelo semântico
 .cache/
 
+# Flag de setup (gerado automaticamente na primeira execução)
+setup_done.json
+
 # Credenciais (nunca commitar)
 .env
 .env.local

@@ -26,27 +26,19 @@ Este caminho será referenciado como `SKILL_DIR` em todos os comandos abaixo.
 
 ## Passo 0: Verificação Automática de Dependências
 
-**ANTES de qualquer outra coisa**, verifique se as dependências estão instaladas:
+A skill verifica e instala dependências automaticamente na primeira execução.
+Não é necessário rodar nenhum comando de instalação separadamente.
+
+O setup é executado automaticamente pelo `search.py` na primeira vez que a skill é usada.
+Um arquivo `setup_done.json` é criado na raiz da skill para indicar que a instalação foi concluída.
+Nas execuções seguintes, o setup é pulado automaticamente (zero overhead).
+
+Todos os comandos dos scripts incluem `--skill-dir` automaticamente via
+detecção de caminho relativo. Se precisar especificar manualmente:
 
 ```bash
-python "SKILL_DIR/scripts/setup.py"
-```
-
-Substitua `SKILL_DIR` pelo caminho real determinado acima.
-
-**Exemplo (Windows):**
-```bash
-python "C:\Users\Leonam\.agents\skills\yt-research\scripts\setup.py"
-```
-
-Este script:
-- Verifica Python 3.8+
-- Instala dependências via `requirements.txt`
-- Baixa o modelo `paraphrase-multilingual-MiniLM-L12-v2` (~120MB) na primeira execução
-
-**Se o setup falhar:** Informe o usuário e sugira instalação manual:
-```bash
-pip install -r SKILL_DIR/requirements.txt
+python "SKILL_DIR/scripts/search.py" --skill-dir "SKILL_DIR" "SUA_QUERY_AQUI"
+python "SKILL_DIR/scripts/transcribe.py" --skill-dir "SKILL_DIR" "ARQUIVO_JSON"
 ```
 
 ## Passo 1: Busca e Seleção de Vídeos
